@@ -167,9 +167,3 @@ On getting the Payment complete callback, the app will request for the transacti
 
 ### Next Steps
 You have successfully added Obopay Payment to your Android App. For more information, do check out our documentation pages on Maven.
-
-Review:
-
-Review with Google and Fb login buttons
-PG Page branding is button
-It should create a mental model in SDK users mind (which may be untrue)
