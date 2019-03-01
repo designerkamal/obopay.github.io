@@ -97,7 +97,8 @@ oboPaymentButton.requestPayment(trans, new OboPaymentListener() {
 });
 
 ```
-Use the Obopay Payment Button where your UI is showing a single service to the user that can be purchased from the screen.
+Use the Obopay Payment Button where your UI is showing a <br>
+single service to the user that can be purchased from the screen.
 
 `OboPaymentListener` callbacks:
 
