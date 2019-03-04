@@ -1,171 +1,104 @@
+# Payments Integration for Merchants
+
+Obopay offers payments service in compliance to RBI PPI (Prepaid Payment Instrument) rules and regulations. End users wishing to make payments via Obopay, must complete the KYC process before availing payment services. 
+
+Merchants can integrate directly with Obopay payments system via an SDK on following channels:
+
+- iOS
+- Android
+- Web 
+
+For each channel, Payments SDK aims at providing the common flow prebuilt for the merchant, making integration very simple. 
+
+This documentation is currently covers details of Android SDK in detail. Web & iOS details are WIP.
+
+## End user payments flow via merchant
+
+1) An user wishes to make a purchase on merchant app / website. Merchant invokes the request via payments SDK. 
+2) On Web-channel, Obopay Payments SDK displays a QR Code that can be directly scanned by the users via Obopay app. On App-channels, the payment request is securely passed to Obopay app (without user intervention)
+3) User verifies the payment details (amount, beneficiary) and keys in hir M-Pin on the app to approve of payment.
+4) On successful authentication, Obopay executes the transfer from user to the merchant's account and invokes a pre-configured callback url of the merchant server with result. In case of any failure, same url is called back with failed status.
 
 
-> Obopay Payments for Android - Quickstart
+## Integration Steps on Android
 
-The Obopay Payments SDK for Android enables consumers to make payments to your app using the Obopay Wallets. The SDK seemlessly manages the payment flow so that you can focus more on providing service and less on payment intricacies.
-
-Follow the steps below to add Obopay Payments SDK into your app.
-
-### 1. Integrate the Obopay Payments SDK
+The Android SDK seemlessly manages the payment flow so that you can focus more on providing service and less on payment intricacies.
 
 To use the Obopay Payments SDK in your app, make it a dependency in Maven.
 
-1. In your project, open **your_project > Gradle Scripts > build.gradle (Project)** and make sure to add the following
+- In your project, open **your_project > Gradle Scripts > build.gradle (Project)** and make sure to add the following  
 
-``` 
-buildscript {
-  repositories {
-    jcenter{}
-  }
-}
-```
+      buildscript {
+        repositories {
+          jcenter{}
+        }
+      }
 
-2. In your project, open **your_project > Gradle Scripts > build.gradle(Module:app)** and add the following implementation statement to `dependencies` section depending the latest version of the SDK always.
+- In your project, open `your_project > Gradle Scripts > build.gradle(Module:app)` and add the following implementation statement to `dependencies` section depending the latest version of the SDK always.
 
-```
-implementation 'com.obopay.android:payments:[1,2)'
-```
+      implementation 'com.obopay.android:payments:[1,2)'
 
-3. Build your project
+- Initialize the SDK: On the application OnCreate() or on your launcher activity, initialize the SDK as following:
 
-### 2. Set SDK key 
+      ObopayPayments.initialize(merchantId)
+      MerchantId is allocated by Obopay at the time of business setup.
 
-Your server must make a call to Obopay server to get the Merchant key (development and release) with which SDK will be initialized.
-This should not be stored on the client app.
+- When user wishes to make a payment:
 
-In your Application class, initialise Obopay Payments SDK with the Merchant Id, Merchant key and Merchant name.
-```
-OboPaymentSdk.getInstance().setKey(key)
-
-```
-
-### 3. Add the Obopay Payment Button
-
-In order to make payments using Obopay, the simplest way is to use the `OboPaymentButton` from the SDK. The `OboPaymentButton` is a UI element which must be added in the layout xml. 
-
-```
-<com.obopay.payment.widget.OboPaymentButton
-    android:id="@+id/obopayment_button"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="25dp"
-    android:layout_marginBottom="25dp" /> 
-```
-
-In your Activity's onCreate() or Fragment's onCreatView(), set the transaction details of the `OboPaymentButton`.
-
-```
-OboTransaction trans = new OboTransaction(transactionId, amount, message);
-
-    transactionId : Unique ID generated for each transaction. 
-                    Response will be generated on this Id.
-    amount        : Amount for which transaction has been 
-                    initiated 
-                    (shown on My Obopay App). 
-    message       : Optional message / reason for which 
-                    transaction has been initiated 
-                    (shown on My Obopay App).
-
-```
-
-With the transaction details, now create a `OboPaymentListener` to listen to Payment initiation status and register with `OboPaymentButton`
-
-
-```
-
-oboPaymentButton = (OboPaymentButton) findViewById(R.id.obopayment_button);
-oboPaymentButton.requestPayment(trans, new OboPaymentListener() {
+  - Call your server to allocate a `PaymentContextId`. PaymentContextId is described in section below.
   
-  @Override
-  public void onPaymentComplete() {
-    // Request payment status from server and display result on UI
-  }
+  - Create a purchase request like:
 
-  @Override
-  public void onPaymentError(PaymentError erroCode) {
-    // Display Payment error on UI
-  }
+    ObopayPayments.requestPayment(callingActivity, PaymentContextId, amount, message);
 
-  @Override
-  public void onPaymentFailed()() {
-    // Display Payment failure on UI
-  }
+        callingActivity   : Activity that launches the payment request
+        PaymentContextId  : Unique context from step above
+        amount            : Amount for which transaction has been initiated 
+        message           : Optional message / reason for which 
+                            transaction has been initiated 
+                            (shown on My Obopay App)
 
-  @Override
-  public void onPaymentDeclined() {
-    // Display on UI payment declined by user
-  }
+  - Response:
 
-});
+    Response is received in the calling activities onActivityResult callback like:
 
-```
-Use the Obopay Payment Button where your UI is showing a single service to the user that can be purchased from the screen.
+        onActivityResult(int requestCode, int resultCode,
+                Intent data)
 
-`OboPaymentListener` callbacks:
+        requestCode : set to ObopayPayments.PAYMENT_REQUEST
+        resultCode  : is zero when request is completed. Otherwise it is 
+                      set to one of the error codes listed below.
+        data        : Receives fields when result code is zero
 
-1. `onPaymentComplete()` : Transaction completed. Request your server for transaction status check. The SDK only tells the App that the request has completed.
+    Error codes:
 
-2. `onInitiationResult(ReultCode code)` : Initiation result codes
-  - NO_OP
-  - UNSUPPORTED_SDK_VERSION
-  - NETWORK_UNHEALTHY
-  - REQUEST_TRANSACTION_ID_INVALID
-  - REQUEST_AMOUNT_INVALID
-  - REQUEST_MESSAGE_INVALID
-  - REQUEST_DECLINED 
-  - REQUEST_TIMED_OUT
+        ObopayPayments.UNSUPPORTED_SDK - You need to upgrade bundled SDK
+        ObopayPayments.AMOUNT_INVALID  - Invalid amount (negative or above max)
+        ObopayPayments.MESSAGE_INVALID - Invalid message (invalid length of message)
+        ObopayPayments.USER_CANCELED   - User pressed cancel
+        ObopayPayments.INVALID_STATE   - Multiple reasons like: 
+                                         - Network unhealthy
+                                         - Obopay SDK missing
+                                         - Not enough balance
+                                         - Device Not authenticated
 
-3. `onPaymentFailed()` : Payment could not go through. 
- 
-### 4 Using a Payment Manager
+    Except when result code is zeros, you needn't do anything. The error codes are for your information only.
 
-Another way of requesting a payment is by using the `OboPaymentManager`.
-In order to make payments using the manager - 
+  - Check transaction status
 
-1. On click of your "Make Payment" button to the following
+    On getting the onActivityResult callback with result code zeros, the app should request it's server for the payment status. Obopay server sends the result of the payment to merchant server on a pre-configured URL. This is done to ensure that payment responses are not lost in case of loss of connectivity between client and server.
 
-```
-OboPaymentManager oboPayMgr = OboPaymentManager.getInstance()
-oboPayMgr.requestPayment(trans, new OboPaymentListener() {
-  
-  @Override
-  public void onPaymentComplete() {
-    // Request payment status from server and display result on UI
-  }
+### Payment Context Id
 
-  @Override
-  public void onPaymentError(PaymentError erroCode) {
-    // Display Payment error on UI
-  }
+`PaymentContextId` represents unique context of purchase across all users. Obopay allows only single payment under this Id in its payment system. PaymentContextId helps solve duplicate payment problem from a user, while providing a context that can later be queried upon for status.
 
-  @Override
-  public void onPaymentFailed()() {
-    // Display Payment failure on UI
-  }
+PaymentContextId is generated by Merchant's server. Here are few examples on how to generate PaymentContextId:
 
-  @Override
-  public void onPaymentDeclined() {
-    // Display on UI payment declined by user
-  }
+- For Merchant system that use shopping card checkout, should ideally use the 'order number' as PaymentContextId. This will help ensure single payment from user against an order. Orders that are abandoned by the users for payment can be retried with same order number.
 
-});
+- Payment against an invoice (bill): similar to 'shopping cart checkout' should use invoice number / bill number as PaymentContextId
 
-Use the Obopay Payment Manager where the UI shows multiple services that the user can purchase separately from the same screen.
-```
+- Direct purchase of an item: If the item cannot be repurchased, itemId can be used as the PaymentContextId. If item can be repurchased after few days, PaymentContextId can be set like dateOfPurchase + '|' + itemId
 
-### 5. Initiating a Payment
+- In a rare situation, for adhoc payment without any context, PaymentContextId can be uniquely generated like userId + '|' + timestamp. This solution is undesirable, you should strictly avoid this.
 
-When someone clicks on the button, the Payment process is initiated with the transaction details set in the `OboPaymentButton` in the following steps - 
-
-1. Before initiating a payment request, the SDK verifies that the user is authenticated and registered on the **My Obopay** app to make a payment through hisObopay  wallet. If this step fails, onInitiationResult() returns  code NO_OP.
-
-2. Once Step 1 is verified, the SDK directs the payment request to **My Obopay** app where user is shown the request details along with mPIN login.
-
-3. If in between the transaction, on the `OboPaymentActivity`, the user presses back or on the **My Obopay** app the user declines the request, transaction is cancelled. onInitiationResult() result code REQUEST_DECLINED.
-
-### 6. Check transaction status
-
-On getting the Payment complete callback, the app will request for the transaction status from its server using Obopay transaction status check API.
-
-### Next Steps
-You have successfully added Obopay Payment to your Android App. For more information, do check out our documentation pages on Maven.
