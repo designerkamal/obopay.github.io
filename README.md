@@ -53,20 +53,20 @@ In your project, open **your_project > Gradle Scripts > build.gradle (Project)**
 
 In your project, open `your_project > Gradle Scripts > build.gradle(Module:app)` and add the following implementation statement to `dependencies` section pointing to the latest revision of the SDK.
 
-    implementation 'com.obopay.android:payments:[1,2)'
+    implementation 'com.obopay.android:obopaypayments:[1,2)'
 
 ### Initialize SDK
 
 On the application OnCreate() or on your launcher activity, initialize the SDK as following:
 
-    ObopayPayments.initialize(merchantRegistrationId)
+    OboPayments.initialize(merchantRegistrationId)
 
 
 ### Create a payment request
 
 When user wishes to make a payment, call your server to allocate a `PaymentContextId`. [Payment Context Id](#paymentContextId) is described in detail in the later section of this document. With the PaymentContextId, create a payment request as following:
 
-    ObopayPayments.requestPayment(callingActivity, PaymentContextId, amount, message);
+    OboPayments.requestPayment(callingActivity, PaymentContextId, amount, message);
 
       callingActivity   : Activity that launches the payment request
       PaymentContextId  : Unique context from step above
@@ -79,24 +79,24 @@ Response is received in the calling activity's onActivityResult callback like:
 
       onActivityResult(int requestCode, int resultCode, Intent data)
 
-      requestCode : set to ObopayPayments.PAYMENT_REQUEST
+      requestCode : set to OboPayments.PAYMENT_REQUEST
       resultCode  : is zero when request is successfully submitted to the Obopay server, 
                     otherwise it is set to one of the client error codes listed below.
       data        : Receives fields with request and response details
 
   Client error codes:
 
-      ObopayPayments.UNSUPPORTED_SDK - You need to upgrade bundled SDK
-      ObopayPayments.AMOUNT_INVALID  - Invalid amount (negative or above max)
-      ObopayPayments.MESSAGE_INVALID - Invalid message (invalid length of message)
-      ObopayPayments.USER_CANCELED   - User pressed cancel
-      ObopayPayments.INVALID_STATE   - Multiple reasons like: 
-                                        - Network unhealthy
+      OboPayments.UNSUPPORTED_SDK   - You need to upgrade bundled SDK
+      OboPayments.AMOUNT_INVALID    - Invalid amount (negative or above max)
+      OboPayments.MESSAGE_INVALID   - Invalid message (invalid length of message)
+      OboPayments.USER_CANCELED     - User pressed cancel
+      OboPayments.NETWORK_UNHEALTHY - Unhealthy network
+      OboPayments.INVALID_STATE     - Multiple reasons like: 
                                         - Obopay SDK missing
                                         - Not enough balance
                                         - Device Not authenticated
 
-You ideally do nothing when result code is non-zeros. The error codes are provided just for information. If the error code is set to zero, you should call your server to check request status.
+You ideally do nothing when result code is non-zeros. The error codes are provided just for information. If the result code is set to zero, you should call your server to check request status.
 
 ### Check request status with your server
 
