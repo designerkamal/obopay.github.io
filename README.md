@@ -91,6 +91,7 @@ Response is received in the calling activity's onActivityResult callback like:
       OboPayments.MESSAGE_INVALID   - Invalid message (invalid length of message)
       OboPayments.USER_CANCELED     - User pressed cancel
       OboPayments.NETWORK_UNHEALTHY - Unhealthy network
+      Obopayments.DUPLICATE_ORDER   - Order is initiated with duplicate payment context ID
       OboPayments.INVALID_STATE     - Multiple reasons like: 
                                         - Obopay SDK missing
                                         - Not enough balance
