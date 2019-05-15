@@ -1,23 +1,23 @@
 # Obopay Payments: Integration via WebSDK
 
 
-    THIS DOCUMENT IS A DRAFT VERSION AND IT WILL GET UPDATED PERIODICALLY TILL WE RELEASE THE SOFTWARE. WE WILL KEEP DEVELOPERS UPDATED ON CHANGES TO THIS DOCUMENT.
+>> THIS DOCUMENT IS A DRAFT VERSION AND IT WILL GET UPDATED PERIODICALLY TILL WE RELEASE THE SOFTWARE. WE WILL KEEP DEVELOPERS UPDATED ON CHANGES TO THIS DOCUMENT.
 
-Obopay payments WebSDK provides seamless integration to business portals to offer payment services to it's customers.
+Obopay payments WebSDK provides seamless integration to business web-portals to offer Obopay payment services to it's customers.
 
-Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instrument) rules and regulations. End users wishing to make payments via Obopay, must complete the KYC process before availing payment services.
+Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instrument) rules and regulations. End users wishing to use Obopay payments, must complete the KYC process before availing payment services.
 
 ## Overview of integration 
 
 1) Obopay provides SDK via Javascript based library. This library should be included on every html page that wishes to integrate with Obopay.
 
-1) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `accessToken`. Access token is acquired by business web-client from their own servers. When 'business server' receives a request for access token, it should call Obopay via provided 'server side library' to acquire an access token.
+1) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `accessToken`. Access token is acquired by business web-client from their own servers. When 'business server' receives a request for access token, it should call Obopay via provided 'server side library' to acquire an `access token` on behalf of their web-clients.
 
 >>'Access token' is issued with expiry (typically 30 minutes), When token has expired, SDK should be reinitialized. 
 
->> Obopay 'serer side library' is provided in Java & Node.js. Businesses needing to integrate in other languages are provided specification for integration. A separate document is provided for the same.
+>> Obopay 'serer side library' is provided for Java & Node.js. Businesses needing to integrate in other languages are provided specification for integration. A separate document is provided for the same.
 
-1) All the user interface displayed by SDK, is presented as pop-up. The pop-up can have `branding color` and `logo` of business for visual integration.
+1) All the user interface displayed by SDK, is presented as pop-up on the callers webpage. The pop-up can have `branding color`, `name` and `logo` of business for visual integration.
 
 
 ## Business registration with Obopay
@@ -25,10 +25,10 @@ Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instr
 There is one time business registration process. Following information is needed from the business
 
     kycStatusUpdateUrl: Obopay posts KYC check response at this url.
-    publicKey         : A public RSA key that is used to encrypt              
-                        response from Obopay. This key can be a 
-                        self-signed RSA key-pair, where private key is 
-                        adequately protected by business.
+    publicKey         : A public RSA key that is used to encrypt response from Obopay. 
+                        This key can be a self-signed RSA key-pair, where private key is 
+                        adequately protected by business. This key-pair is also used when
+                        business server needs to contact Obopay servers.
 
 As part of registration, business is issued a `businessRegistrationId`. This id is used by Obopay to identify a business in it’s system.
 
@@ -41,7 +41,7 @@ On your web page, initialize SDK as following:
 
     businessRegistrationId : As provided to business
     userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
-    accessToken            : Acquired via server from Obopay (Details in Api documentation)
+    accessToken            : Acquired via server from Obopay (Details in server Api documentation)
     
 If your web portal has multiple pages, you may acquire the accessToken once and store it in 'localStorage' along with expiry timestamp. You should reacquire access token in the event of expiry. Also, if you have user re-login / logout, you should again refresh the token.
 
@@ -53,31 +53,33 @@ For activating new user with Obopay payments and card, you should pass all the u
 
     Obopayments.activateUser(userDetails, callback)
 
-    userDetails Object has following fields: 
-    {
+    userDetails Object {
+
         firstName     : User's first name
         lastName      : User's last name
         dob           : Date of birth in yyyy/mm/dd format
-        gender        : One of [M, F]
+        gender        : 'M' | 'F'
         emailId       : User email id
-        minKycDocType : Minimum KYC document - One of [PAN, PASSPORT, DL, VOTER_ID, RATION_CARD]
+        minKycDocType : Minimum KYC document - Valid values are in next section
         minKycDocId   : Id/Number of minKycDocType
         kycDocuments  : Array of kycDocument, explained below
 
-        kycDocument Object has following fields:
-        category      : One of [PROOF_OF_ADDRESS, SELF_IDENTIFICATION, PROOF_OF_IDENTITY, AGE_PROOF]
-        type          : Depending on category, detailed in next section
+    }, callback       : function cb(status) {
+
+        `status` can be 'CANCELED' | 'SUCCESS' | 'ALREADY_REGISTERED' 
+        // you should use this callback update your user interface with registration status
+    }
+
+    kycDocument Object has following fields:
+    {
+        category      : Address proof, id proof etc. CODES described in next section 
+        type          : Depending on category, CODES described in next section 
         urls          : Array of urls (front and back) based on type of document. 
                         In case url access is protected, please embed url with 
-                        access-token / session id in the url itself 
-
-        url should point to resources that are images. Images should be less than 5MB in size.
+                        access-token / session id in the url itself. Url should point to resources 
+                        that are images. Images should be less than 5MB in size.
     }
-    callback          : function cb(status) {
-
-        `status` can be CANCELED | SUCCESS | ALREADY_REGISTERED 
-        // you should update your user interface to indicate success
-    }
+    
 
 ___User KYC___
 
@@ -116,9 +118,9 @@ For adult, one of each document type:
     - PAN Card (PAN_CARD) : Front
     
 
-It is important that business system remembers the status of user KYC. Status should have following values: UPLOADED | SUSPENDED | APPROVED
+It is important that business system remembers the status of user KYC. Status should have following values: UPLOADED | SUSPENDED | APPROVED. This field is updated via kycStatusUpdateUrl (Described in section below)
 
-Business should be nudge user to fix SUSPENDED KYC based on this field.
+Business should nudge user to fix SUSPENDED KYC based on this field.
 
 ## Callback to kycStatusUpdateUrl
 
