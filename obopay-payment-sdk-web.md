@@ -86,6 +86,7 @@ ___User KYC___
 Businesses doing user KYC themselves need to provide KYC documents for the user being registered. Following documents types are needed for minors:
   
 - Address proof (PROOF_OF_ADDRESS) 
+
    - Driving License of self (DRIVER_LICENSE) : Front and Back
    - Driving License of parent (PARENTS_DRIVER_LICENSE) : Front and Back
    - Passport of self (PASSPORT) : Front and Back
@@ -94,31 +95,36 @@ Businesses doing user KYC themselves need to provide KYC documents for the user 
    - Voter's Id of Parent (PARENTS_VOTER) : Front and Back
 
 - Self Identification (SELF_IDENTIFICATION)
+
     - Selfie (SELF_PHOTO) 
 
 - Identity proof (PROOF_OF_IDENTITY)
+
     - School/College Student Id (STUDENT_ID) : Front and Back
 
 - Age proof (AGE_PROOF) 
+
     - Birth Certificste (BIRTH_CERTIFICATE) : Front
     - SSLC Certificate (SSLC_CERTIFICATE) : Front
 
 For adult, one of each document type:
 
 - Address proof (PROOF_OF_ADDRESS)  
+
     - Driving License of self (DRIVER_LICENSE) : Front and Back
     - Passport of self (PASSPORT) : Front and Back
     - Ration Card (RATION_CARD) : Front and Back
     - Voter's Id (VOTER) : Front and Back
 
 - Self Identification (SELF_IDENTIFICATION)
+
     - Selfie (SELF_PHOTO) 
 
 - Identity proof (PROOF_OF_IDENTITY)
+
     - PAN Card (PAN_CARD) : Front
     
-
-It is important that business system remembers the status of user KYC. Status should have following values: UPLOADED | SUSPENDED | APPROVED. This field is updated via kycStatusUpdateUrl (Described in section below)
+It is important that business system remembers the status of user KYC. Status should have following values: 'UPLOADED', 'SUSPENDED' or 'APPROVED'. This field is updated via kycStatusUpdateUrl (Described in section below)
 
 Business should nudge user to fix SUSPENDED KYC based on this field.
 
