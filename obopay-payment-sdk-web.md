@@ -85,7 +85,7 @@ ___User KYC___
 
 Businesses doing user KYC themselves need to provide KYC documents for the user being registered. 
 
-___Documents categories are needed for minors:___
+___For minor (less than 18 years of age), one of each document type:___
   
 1. Address proof (PROOF_OF_ADDRESS)
 
