@@ -94,20 +94,24 @@ Businesses doing user KYC themselves need to provide KYC documents for the user 
    - Ration Card (RATION_CARD) : Front and Back
    - Voter's Id of Parent (PARENTS_VOTER) : Front and Back
 
+
 - Self Identification (SELF_IDENTIFICATION)
 
     - Selfie (SELF_PHOTO) 
 
+
 - Identity proof (PROOF_OF_IDENTITY)
 
     - School/College Student Id (STUDENT_ID) : Front and Back
+
 
 - Age proof (AGE_PROOF) 
 
     - Birth Certificste (BIRTH_CERTIFICATE) : Front
     - SSLC Certificate (SSLC_CERTIFICATE) : Front
 
-For adult, one of each document type:
+
+**For adult, one of each document type:**
 
 - Address proof (PROOF_OF_ADDRESS)  
 
@@ -116,9 +120,11 @@ For adult, one of each document type:
     - Ration Card (RATION_CARD) : Front and Back
     - Voter's Id (VOTER) : Front and Back
 
+
 - Self Identification (SELF_IDENTIFICATION)
 
     - Selfie (SELF_PHOTO) 
+
 
 - Identity proof (PROOF_OF_IDENTITY)
 
