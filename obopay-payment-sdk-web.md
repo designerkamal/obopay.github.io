@@ -77,7 +77,7 @@ For activating new user with Obopay payments and card, you should pass all the u
         urls          : Array of urls (front and back) based on type of document. 
                         In case url access is protected, please embed url with 
                         access-token / session id in the url itself. Url should point to resources 
-                        that are images. Images should be less than 5MB in size.
+                        that are images. Images should be less than 500 KB in size.
     }
     
 
