@@ -1,12 +1,6 @@
-# Obopay Rest APIs for Jugad
+# Obopay Rest APIs for Businesses
 
-Obopay has exposed the following rest APIs for integration with Jugad. All the APIs should be called following 'Obopay Secure Communication Protocol'. Protocol is covered in a document provided separately.
-
-Besides these API, Jugad will also have access to a portal, where it will have access to following features:
-
-- Check balance in it's account
-- Check last transactions from it's account
-- Do bulk transfer to users (can be used to correct any reconciliation or ad-hoc needs)
+Obopay has exposed the following rest APIs for integration for Businesses. All the APIs should be called following 'Obopay Secure Communication Protocol'. Protocol is covered in a document provided separately and it is also packaged as a Java / node library for ease of use.
 
 ## isCardLinked API
 
@@ -38,20 +32,20 @@ This Api is used, when a business wishes to transfer money from its own account 
                           Described below.
       message           : Remarks/reason for payment (optional)
     }
-    
+
 API response is as follows.
 
     {
       error     : null
-      data      : { 
+      data      : {
         paymentContextId  : Id with which request was made
         amount            : Amount transferred (it is always same as requested amount)
         oboTransactionId  : the transaction reference no generated at Obopay
-      } 
+      }
     }
-    
-In case of failure the response will be 
-    
+
+In case of failure the response will be
+
     {
       error     : null
       data      : {
@@ -87,7 +81,7 @@ The JSON format of the POST body is given below.
     {
       paymentContextId : the paymentContextId being queried.
     }
-    
+
 API response is as follows.
 
     {
@@ -95,25 +89,5 @@ API response is as follows.
       data      : {
         oboTransactionId  : the transaction reference number at Obopay (may be null)
         success           : true / false
-      } 
+      }
     }
-
-
-## temporaryCheckBalance API
-
-Temporarily Obopay will provide an Api to check user balance. This API will be automatically withdrawn from 1st Oct 2019. The same support would be provided in Android SDK with display of user balances and transactions.
-
-The JSON format of the POST body is given below.
-
-    {
-      mobileNumber      : Beneficiary mobile number as registered with Obopay.
-    }
-    
-API response is as follows.
-
-    {
-      error     : null
-      data      : {
-        balance  : number // in INR
-      } 
-    }    
