@@ -2,6 +2,33 @@
 
 Obopay has exposed the following rest APIs for integration for Businesses. All the APIs should be called following 'Obopay Secure Communication Protocol'. Protocol is covered in a document provided separately and it is also packaged as a Java / node library for ease of use.
 
+## authKey API
+
+This API is used by business to get an Auth key used for initializing Obopay Web Payments SDK. The JSON format of the POST body is given below.
+
+    {
+      businessRegistrationId : As provided to business
+      userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+    }
+
+API response is as follows.
+
+    {
+      error         : null
+      data          : {
+        authKey       : Key used to initialize payments web SDK
+        userStatus    : User registration status
+      }
+    }
+
+List of User Status:
+
+  - REGISTERED
+  - NOT_REGISTERED
+  - CARD_NOT_LINKED
+  - KYC_SUSPENDED
+  - KYC_PENDING
+
 ## isCardLinked API
 
 API for checking if a card has been issued to the given mobile number. The JSON format of the POST body is given below.
