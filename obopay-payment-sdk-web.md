@@ -11,11 +11,11 @@ Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instr
 
 1) Obopay provides SDK via Javascript based library. This library should be included on every html page that wishes to integrate with Obopay.
 
-1) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `accessToken`. Access token is acquired by business web-client from their own servers. When 'business server' receives a request for access token, it should call Obopay via provided 'server side library' to acquire an `access token` on behalf of their web-clients.
+1) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `authKey`. Auth key is acquired by business web-client from their own servers. When 'business server' receives a request for auth key, it should call Obopay via provided 'server side library' to acquire an `auth key` on behalf of their web-clients.
 
->>'Access token' is issued with expiry (typically 30 minutes), When token has expired, SDK should be reinitialized. 
+>>'Auth key' is issued with expiry (typically 30 minutes), When key has expired, business web-server should request a fresh key and SDK should be reinitialized with the new key. 
 
->> Obopay 'serer side library' is provided for Java & Node.js. Businesses needing to integrate in other languages are provided specification for integration. A separate document is provided for the same.
+>> Obopay 'server side library' is provided for Java & Node.js. Businesses needing to integrate in other languages are provided specification for integration. A separate document is provided for the same.
 
 1) All the user interface displayed by SDK, is presented as pop-up on the callers webpage. The pop-up can have `branding color`, `name` and `logo` of business for visual integration.
 
@@ -37,17 +37,24 @@ As part of registration, business is issued a `businessRegistrationId`. This id 
 
 On your web page, initialize SDK as following:
 
-    Obopayments.initialize(businessRegistrationId, userMobileNo, accessToken)
+    Obopayments.initialize(businessRegistrationId, userMobileNo, authKey, businessName, 
+                           businessLogoUrl, callback)
 
     businessRegistrationId : As provided to business
     userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
-    accessToken            : Acquired via server from Obopay (Details in server Api documentation)
+    authKey                : Acquired via server from Obopay 
+                             (Details in server Api documentation)
+
+    businessName           : Branding name that appears on the popup
+    businessLogoUrl        : Branding icon that appears on the popup. Dimensions should be of 150px 
+                             width & 100px height
+    callback               : Listen to initialization reponse 
     
-If your web portal has multiple pages, you may acquire the accessToken once and store it in 'localStorage' along with expiry timestamp. You should reacquire access token in the event of expiry. Also, if you have user re-login / logout, you should again refresh the token.
+If your web portal has multiple pages, you may acquire the authKey once and store it in 'localStorage' along with expiry timestamp. You should reacquire access token in the event of expiry. Also, if you have user re-login / logout, you should again refresh the token.
 
-At any stage if user id / mobile number changes OR you get a new accessToken, you must reinitialize the SDK.
+At any stage if user id / mobile number changes OR you get a new authKey, you must reinitialize the SDK.
 
-## Obopayments.registerUser: API to register a new user
+## Obopayments.activateUser: API to activate a new user
 
 For activating new user with Obopay payments and card, you should pass all the user information that you already have available with your portal. Obopay SDK, will show UI to ask for additional information that is missed.
 
@@ -72,12 +79,17 @@ For activating new user with Obopay payments and card, you should pass all the u
 
     kycDocument Object has following fields:
     {
+        kycType       : 'MAJOR' | 'MINOR'
         category      : Address proof, id proof etc. CODES described in next section 
         type          : Depending on category, CODES described in next section 
-        urls          : Array of urls (front and back) based on type of document. 
+        urls          : Object of urls (front and back) based on type of document. 
                         In case url access is protected, please embed url with 
                         access-token / session id in the url itself. Url should point to resources 
-                        that are images. Images should be less than 500 KB in size.
+                        that are images. Images should be less than 500 KB in size. 
+                        Example : {
+                                     front: "https://business.com/access-token/id_name_front.jpeg",
+                                     back : "https://business.com/access-token/id_name_back.jpeg"
+                                  } 
     }
     
 
@@ -171,25 +183,25 @@ It can happen that KYC is suspended for multiple document category and hence an 
 
 If a user fails KYC check, he should be given option to correct KYC details in business portal. Once, KYC details are reacquired, Obopay SDK should be called to update user details. This API is allowed to be called, only for the users who have KYC check in SUSPENDED status.
 
-    updateUserDetails(userDetails)
+    updateUserDetails(userDetails, callback)
 
     userDetails : Same structure as in `Obopayments.registerUser`
 
 
 ## Obopayments.getKycStatus: API to check KYC status
 
-    Obopayments.getKycStatus() returns 'UPLOADED' | 'APPROVED' | 'SUSPENDED'
+    Obopayments.getKycStatus(callback) returns 'UPLOADED' | 'APPROVED' | 'SUSPENDED'
 
 
 ## Obopayments.getBalance: API to check wallet balance
 
-    Obopayments.getBalance() returns `user balance`
+    Obopayments.getBalance(callback) returns `user balance`
 
 
 ## Transaction History and Balance Check
 
 For viewing transaction history and wallet balance of user, display appropriate UI on your web page and on click of the 'View' button request history as following:
 
-    Obopayments.viewTransactions()
+    Obopayments.viewTransactions(callback)
 
 The SDK shows wallet history and balance in a popup.
