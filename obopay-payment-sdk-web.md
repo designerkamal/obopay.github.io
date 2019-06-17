@@ -106,7 +106,7 @@ ___For minor (less than 18 years of age), one of each document type:___
    - Passport of self (PASSPORT) : Front and Back
    - Passport of Parent (PARENTS_PASSPORT) : Front and Back
    - Ration Card (RATION_CARD) : Front and Back
-   - Voter's Id of Parent (PARENTS_VOTER) : Front and Back
+   - Voter's Id of Parent (PARENTS_VOTER_ID) : Front and Back
 
 
 1. Self Identification (SELF_IDENTIFICATION)
@@ -132,7 +132,7 @@ ___For adult, one of each document type:___
     - Driving License of self (DRIVER_LICENSE) : Front and Back
     - Passport of self (PASSPORT) : Front and Back
     - Ration Card (RATION_CARD) : Front and Back
-    - Voter's Id (VOTER) : Front and Back
+    - Voter's Id (VOTER_ID) : Front and Back
 
 2. Self Identification (SELF_IDENTIFICATION)
 
