@@ -67,7 +67,7 @@ For activating new user with Obopay payments and card, you should pass all the u
         dob           : Date of birth in yyyy/mm/dd format
         gender        : 'M' | 'F'
         emailId       : User email id
-        minKycDocType : Minimum KYC document - Valid values are in next section
+        minKycDocType : Minimum KYC document - Valid values : DRIVER_LICENSE | RATION_CARD | PASSPORT | VOTER_ID
         minKycDocId   : Id/Number of minKycDocType
         kycDocuments  : Array of kycDocument, explained below
 
