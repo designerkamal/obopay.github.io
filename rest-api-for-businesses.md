@@ -29,6 +29,32 @@ List of User Status:
   - KYC_SUSPENDED
   - KYC_PENDING
 
+
+## KYC Document Upload API
+
+API for uploading KYC documents for a user. The JSON format of the POST body is given below.
+
+    {
+      businessRegistrationId : As provided to business
+      userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+      kycDocuments           : Array of kycDocument, explained below
+    }
+
+    kycDocument Object has following fields:
+    {
+      kycType       : 'MAJOR' | 'MINOR'
+      category      : Address proof, id proof etc. CODES described in next section 
+      type          : Depending on category, CODES described in next section 
+      urls          : Object of urls (front and back) based on type of document. 
+                      In case url access is protected, please embed url with 
+                      access-token / session id in the url itself. Url should point to resources 
+                      that are images. Images should be less than 500 KB in size. 
+                      Example : {
+                                    front: "https://business.com/access-token/id_name_front.jpeg",
+                                    back : "https://business.com/access-token/id_name_back.jpeg"
+                                } 
+    }
+
 ## isCardLinked API
 
 API for checking if a card has been issued to the given mobile number. The JSON format of the POST body is given below.
