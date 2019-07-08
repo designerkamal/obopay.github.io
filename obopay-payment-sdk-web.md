@@ -11,7 +11,7 @@ Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instr
 
 1) Obopay provides SDK via Javascript based library. This library should be included on every html page that wishes to integrate with Obopay.
 
-1) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `authKey`. Auth key is acquired by business web-client from their own servers. When 'business server' receives a request for auth key, it should call Obopay via provided 'server side library' to acquire an `auth key` on behalf of their web-clients.
+2) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `authKey`. Auth key is acquired by business web-client from their own servers. When 'business server' receives a request for auth key, it should call Obopay via provided 'server side library' to acquire an `auth key` on behalf of their web-clients.
 
 >>'Auth key' is issued with expiry (typically 30 minutes), When key has expired, business web-server should request a fresh key and SDK should be reinitialized with the new key. 
 
@@ -33,22 +33,32 @@ There is one time business registration process. Following information is needed
 As part of registration, business is issued a `businessRegistrationId`. This id is used by Obopay to identify a business in it’s system.
 
 
-## Obopayments.initialize: API to initializes SDK
+## Obopayments.initialize: API to initialize SDK
 
 On your web page, initialize SDK as following:
 
-    Obopayments.initialize(businessRegistrationId, userMobileNo, authKey, businessName, 
-                           businessLogoUrl, callback)
+    Obopayments.initialize(businessRegistrationId, userMobileNo, authKey, 
+                           businessName, businessLogoUrl, callback)
 
     businessRegistrationId : As provided to business
-    userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+    userMobileNo           : Country ISD prefix + 10 digit mobile number 
+                             (Example +919876512345)
     authKey                : Acquired via server from Obopay 
                              (Details in server Api documentation)
 
     businessName           : Branding name that appears on the popup
-    businessLogoUrl        : Branding icon that appears on the popup. Dimensions should be of 150px 
-                             width & 100px height
+    businessLogoUrl        : Branding icon that appears on the popup. 
+                             Dimensions should be of 75px 
+                             width & 75px height
     callback               : Listen to initialization reponse 
+
+    Possible Error codes : 
+
+    1) SDK_AUTH_EXPIRED     : Auth key that you are using has exceeded its 
+                              30 minutes validity window.
+    2) SDK_AUTH_INVALID     : Auth key that you are using is invalid.
+    3) INVALID_INIT_PARAMS  : Initialization params are not valid.  
+
     
 If your web portal has multiple pages, you may acquire the authKey once and store it in 'localStorage' along with expiry timestamp. You should reacquire access token in the event of expiry. Also, if you have user re-login / logout, you should again refresh the token.
 
@@ -67,7 +77,7 @@ For activating new user with Obopay payments and card, you should pass all the u
         dob           : Date of birth in yyyy/mm/dd format
         gender        : 'M' | 'F'
         emailId       : User email id
-        minKycDocType : Minimum KYC document - Valid values : DRIVER_LICENSE | RATION_CARD | PASSPORT | VOTER_ID
+        minKycDocType : Minimum KYC document - Valid values are in next section
         minKycDocId   : Id/Number of minKycDocType
         kycDocuments  : Array of kycDocument, explained below
 
@@ -198,10 +208,236 @@ If a user fails KYC check, he should be given option to correct KYC details in b
     Obopayments.getBalance(callback) returns `user balance`
 
 
-## Transaction History and Balance Check
+## Obopayments.viewTransactionHistory: API to View Transaction History
 
-For viewing transaction history and wallet balance of user, display appropriate UI on your web page and on click of the 'View' button request history as following:
+For viewing transaction history you should pass the wallet type whose transaction history you want to view. Obopay will check that the wallet requested by the user is linked with the card or not.
 
-    Obopayments.viewTransactions(callback)
+After passing the params on click of the 'View Transactions' button on your UI, request history as following 
+
+    Obopayments.viewTransactionHistory(viewTransactionParams, callback)
+    
+    viewTransactionParams = { 
+      walletType : Type of wallet - 'ALL' | 'DEFAULT' | 'FUEL' etc.
+    }
+
+    Type 'ALL' will show you the transactions of all wallets. Any other wallet type will show you the transaction from that particular wallet.
+
+    Possible Error codes :
+
+    1) INVALID_WALLET_ID : Requested wallet type does not exist for the user.
+    2) WALLET_NOT_LINKED : Requested wallet is not linked with Obopay card.
+
 
 The SDK shows wallet history and balance in a popup.
+
+## Obopayments.selectTransactionHistory: API to Select Transaction History 
+
+For selecting multiple transactions on a UI pop up window you should pass the wallet type whose transaction history you want to select. The response of the API is a JSON array of transactions.
+
+On click of 'Select Transactions' button on your UI, request as follows
+
+    Obopayments.selectTransactionHistory(selectTransactionParams, callback) 
+
+    selectTransactionParams = { 
+      walletType : Type of wallet - 'ALL' | 'DEFAULT' | 'FUEL' etc.
+    }
+
+    The response is a JSON array of transaction Objects.
+
+    transaction Object {
+
+        walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
+        transactionDetail : Optional transaction message
+        transactionAmount : Trasaction amount
+        merchantName      : Name of payee
+        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                            'PENDING' | 'FAILED' | 'TIMEOUT'
+        transactionTS     : Transaction initiation timestamp milliseconds 
+        closingBalance    : Wallet balance post transaction completion
+        txnRefNo          : Transaction reference id
+        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+        tax              ?: Optional Tax amount
+        netAmount        ?: Optional net amount
+        amountFee        ?: Optional Fee amount
+    }
+
+    Possible Error codes : 
+
+    1) INVALID_WALLET_ID : Requested wallet type does not exist for the user.
+    2) WALLET_NOT_LINKED : Requested wallet is not linked with Obopay card.
+
+
+## Obopayments.sendMoney: API to Send Money
+
+To send money to any other Obopay user you should pass the mobile number of the Obopay user to whom user wishes to send money along with the amount in a JSON Format. You can also pass an optional transaction message.
+
+ On click of the 'Send Money' button on your UI request the following:
+
+    Obopayments.sendMoney(sendMoneyParams, callback) 
+
+    sendMoneyParams = {
+        mobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+        amount   : Amount to send
+        transMsg : Optional transaction message
+    }
+
+    The response will be an object of the transaction 
+        
+      transaction Object {
+
+        walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
+        transactionDetail : Optional transaction message
+        transactionAmount : Trasaction amount
+        merchantName      : Name of payee
+        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                            'PENDING' | 'FAILED' | 'TIMEOUT'
+        transactionTS     : Transaction initiation timestamp milliseconds 
+        closingBalance    : Wallet balance post transaction completion
+        txnRefNo          : Transaction reference id
+        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+        tax              ?: Optional Tax amount
+        netAmount        ?: Optional net amount
+        amountFee        ?: Optional Fee amount
+      }
+
+      Possible Error codes:
+
+      1) INVALID_IND_MOBILE_NUMBER : Mobile number passed is an invalid Indian mobile number.
+
+
+Based on the transactionStatus of transaction object you can check whether it is completed or not
+
+## Obopayments.addMoney: API to Add Money 
+
+To Add Money you should pass the amount user wants to add in his/her DEFAULT (primary) wallet through UPI, Card/Net Banking, etc mediums.
+
+On click of the 'Add Money' button on your UI request the following:
+
+    Obopayments.addMoney(addMoneyParams, callback) 
+
+    addMoneyParams = {
+        amount   : Amount to be added
+    }
+
+    The response will be an object of the transaction
+        
+      transaction Object {
+
+        walletType        : Type of wallet - 'DEFAULT'.
+        transactionDetail : Optional transaction message
+        transactionAmount : Trasaction amount
+        merchantName      : Name of payee
+        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                            'PENDING' | 'FAILED' | 'TIMEOUT'
+        transactionTS     : Transaction initiation timestamp milliseconds 
+        closingBalance    : Wallet balance post transaction completion
+        txnRefNo          : Transaction reference id
+        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+        tax              ?: Optional Tax amount
+        netAmount        ?: Optional net amount
+        amountFee        ?: Optional Fee amount
+      }
+
+Based on the transactionStatus of transaction object you can check whether it is completed or not
+
+## Obopayments.requestMoney: API to Request Money
+
+To request money for user from another Obopay user you should pass the mobile number of the Obopay user from whom the user wishes to request money along with the request amount (greater than 0) in a JSON Format
+
+On click of the 'Request Money' button on your UI request the following:
+
+    Obopayments.requestMoney(requestMoneyParams, callback) 
+
+    requestMoneyParams = {
+        mobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+        amount   : Request amount
+    }
+
+    The response will be a SUCCESS or FAILURE with an error code 
+
+    Possible Error codes :
+
+    1) USER_CANCELLED_REQUEST : User cancels the request.
+    2) DEBIT_LIMIT_EXCEEDED   : A user can make only 5 debit transactions in a day. 
+                                The transaction fails with this error code if thelimit exceeds.
+    3) TRANSACTION_TIMED_OUT  : User fails to enter the OTP before transaction expiry time.
+    4) OTP_LIMIT_EXCEEDED     : User fails to enter the correct OTP within 3 attempts 
+                                to complete the transaction.
+
+
+## Obopayments.collectRequest: API to Collect Request
+
+To collect payment from a user in your Obopay wallet you should pass a unique context of purchase (order Id) for the transaction along with the amount. You can also pass an optional transaction message.
+
+On click of the 'Collect Payment' button on your UI request the following
+
+    Obopayments.collectRequest(collectRequestParams, callback) 
+
+    collectRequestParams = {
+        paymentContextId : Unique context of purchase
+        amount           : Collection amount
+        message          : Optional message
+    }
+
+    The response will be an object of the transaction
+
+    response = {
+
+      merchantId        : Your business id
+      paymentContextId  : Id with which request was made
+      amount            : Amount that customer paid for service
+      message           : Transaction message
+      oboTransactionId  : Internal transaction id in Obopay system
+    }
+
+    Possible Error codes : 
+
+    1) TRANSACTION_TIMED_OUT : Time to complete the transaction is elapsed
+
+
+## Obopayments.lockCard: API to Lock Card
+
+On click of the 'Lock Card' button on your UI request the following:
+
+    Obopayments.lockCard(callback) 
+
+    The response will be a SUCCESS or FAILURE with error code. 
+
+    Possible Error codes:
+
+    1) CARD_ALREADY_LOCKED : Requesting to lock a card which is already in locked state
+
+
+## Obopayments.unlockCard : API to unlock a locked card
+
+On click of the 'Unlock Card' button on your UI request the following:
+
+    Obopayments.unlockCard(callback) 
+    
+    The response will be a SUCCESS or FAILURE with error code.
+
+    Possible Error codes:
+
+    1) CARD_ALREADY_UNLOCKED : Requesting to unlock a card which is already in unlocked state
+ 
+
+## Obopayments.blockCard : API to block Card 
+
+On click of the 'Block Card' button on your UI request the following:
+
+    Obopayments.blockCard(callback) 
+
+    The response will be a SUCCESS or FAILURE with error code.
+
+    Possible Error codes:
+
+    1) CARD_ALREADY_BLOCKED : Requesting to block a card which is already in blocked state
+
+
+## Common error codes
+
+    1) INVALID_PARAMS         : Request params provided are not the valid in context of the API 
+                                being called.
+    2) OPERATION_IN_PROGRESS  : While the SDK is showing a pop up UI for an API action and 
+                                you request for another API action.
+    3) USER_NOT_ACTIVATED     : Calling any SDK API without activating / logging in the user.
