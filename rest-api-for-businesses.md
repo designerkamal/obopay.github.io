@@ -18,6 +18,7 @@ API response is as follows.
       data          : {
         authKey       : Key used to initialize payments web SDK
         userStatus    : User registration status
+        cardStatus    : Card link status
       }
     }
 
@@ -25,10 +26,17 @@ List of User Status:
 
   - REGISTERED
   - NOT_REGISTERED
-  - CARD_NOT_LINKED
   - KYC_SUSPENDED
   - KYC_PENDING
 
+List of Card Status:
+
+  - ACTIVE
+  - LOCK
+  - BLOCK
+  - PENDACTVN
+  - INACTIVE
+  - NOT_LINKED
 
 ## KYC Document Upload API
 
