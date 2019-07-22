@@ -7,8 +7,7 @@ Obopay has exposed the following rest APIs for integration for Businesses. All t
 This API is used by business to get an Auth key used for initializing Obopay Web Payments SDK. The JSON format of the POST body is given below.
 
     {
-      businessRegistrationId : As provided to business
-      userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+      userMobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
     }
 
 API response is as follows.
@@ -43,9 +42,8 @@ List of Card Status:
 API for uploading KYC documents for a user. The JSON format of the POST body is given below.
 
     {
-      businessRegistrationId : As provided to business
-      userMobileNo           : Country ISD prefix + 10 digit mobile number (Example +919876512345)
-      kycDocuments           : Array of kycDocument, explained below
+      userMobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+      kycDocuments : Array of kycDocument, explained below
     }
 
     kycDocument Object has following fields:
