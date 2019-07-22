@@ -76,7 +76,7 @@ For activating new user with Obopay payments and card, you should pass all the u
         lastName      : User's last name
         dob           : Date of birth in yyyy/mm/dd format
         gender        : 'M' | 'F'
-        emailId       : User email id
+        email         : User email id
         minKycDocType : Minimum KYC document - Valid values are in next section
         minKycDocId   : Id/Number of minKycDocType
         kycDocuments  : Array of kycDocument, explained below
