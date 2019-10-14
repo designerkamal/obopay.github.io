@@ -1,8 +1,5 @@
 # Obopay Payments: Integration via WebSDK
 
-
->> THIS DOCUMENT IS A DRAFT VERSION AND IT WILL GET UPDATED PERIODICALLY TILL WE RELEASE THE SOFTWARE. WE WILL KEEP DEVELOPERS UPDATED ON CHANGES TO THIS DOCUMENT.
-
 Obopay payments WebSDK provides seamless integration to business web-portals to offer Obopay payment services to it's customers.
 
 Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instrument) rules and regulations. End users wishing to use Obopay payments, must complete the KYC process before availing payment services.
@@ -13,7 +10,7 @@ Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instr
 
 2) SDK is initialized with `businessRegistrationId` (issued by Obopay), `userMobileNo` and an `authKey`. Auth key is acquired by business web-client from their own servers. When 'business server' receives a request for auth key, it should call Obopay via provided 'server side library' to acquire an `auth key` on behalf of their web-clients.
 
->>'Auth key' is issued with expiry (typically 30 minutes), When key has expired, business web-server should request a fresh key and SDK should be reinitialized with the new key. 
+>>'Auth key' is issued with expiry (typically 30 minutes). When key has expired, business web-server should request a fresh key and SDK should be reinitialized with the new key.
 
 >> Obopay 'server side library' is provided for Java & Node.js. Businesses needing to integrate in other languages are provided specification for integration. A separate document is provided for the same.
 
@@ -38,7 +35,7 @@ As part of registration, business is issued a `businessRegistrationId`. This id 
 On your web page, initialize SDK as following:
 
     Obopayments.initialize(businessRegistrationId, userMobileNo, authKey, 
-                           businessName, businessLogoUrl, callback)
+                           businessName, businessLogoUrl, businessColorHex, callback)
 
     businessRegistrationId : As provided to business
     userMobileNo           : Country ISD prefix + 10 digit mobile number 
@@ -50,6 +47,7 @@ On your web page, initialize SDK as following:
     businessLogoUrl        : Branding icon that appears on the popup. 
                              Dimensions should be of 75px 
                              width & 75px height
+    businessColorHex       : Business branding color (Hex format)
     callback               : Listen to initialization reponse 
 
     Possible Error codes : 
@@ -58,6 +56,7 @@ On your web page, initialize SDK as following:
                               30 minutes validity window.
     2) SDK_AUTH_INVALID     : Auth key that you are using is invalid.
     3) INVALID_INIT_PARAMS  : Initialization params are not valid.  
+    4) USER_NOT_ACTIVATED   : User is not activated on the platform being used. Perform either registration or login.
 
     
 If your web portal has multiple pages, you may acquire the authKey once and store it in 'localStorage' along with expiry timestamp. You should reacquire access token in the event of expiry. Also, if you have user re-login / logout, you should again refresh the token.
@@ -71,24 +70,17 @@ For activating new user with Obopay payments and card, you should pass all the u
     Obopayments.activateUser(userDetails, callback)
 
     userDetails Object {
-
-        firstName     : User's first name
-        lastName      : User's last name
-        dob           : Date of birth in yyyy/mm/dd format
-        gender        : 'M' | 'F'
-        email         : User email id
-        minKycDocType : Minimum KYC document - Valid values are in next section
-        minKycDocId   : Id/Number of minKycDocType
-        kycDocuments  : Array of kycDocument, explained below
-
-    }, callback       : function cb(status) {
-
-        `status` can be 'CANCELED' | 'SUCCESS' | 'ALREADY_REGISTERED' 
-        // you should use this callback update your user interface with registration status
+      firstName     : User's first name
+      lastName      : User's last name
+      dob           : Date of birth in yyyy/mm/dd format
+      gender        : 'M' | 'F'
+      email         : User email id
+      minKycDocType : Minimum KYC document - Valid values are in next section
+      minKycDocId   : Id/Number of minKycDocType
+      kycDocuments  : Array of kycDocument, explained below
     }
 
-    kycDocument Object has following fields:
-    {
+    kycDocument Object {
         kycType       : 'MAJOR' | 'MINOR'
         category      : Address proof, id proof etc. CODES described in next section 
         type          : Depending on category, CODES described in next section 
@@ -101,6 +93,13 @@ For activating new user with Obopay payments and card, you should pass all the u
                                      back : "https://business.com/access-token/id_name_back.jpeg"
                                   } 
     }
+
+    
+    The success response will be like 
+
+    {
+      code : 'SUCCESS'
+    }
     
 
 ___User KYC___
@@ -111,7 +110,7 @@ ___For minor (less than 18 years of age), one of each document type:___
   
 1. Address proof (PROOF_OF_ADDRESS)
 
-   - Driving License of self (DRIVER_LICENSE) : Front and Back
+   - Aadhaar Card of self (AADHAAR_CARD) : Front and Back
    - Driving License of parent (PARENTS_DRIVER_LICENSE) : Front and Back
    - Passport of self (PASSPORT) : Front and Back
    - Passport of Parent (PARENTS_PASSPORT) : Front and Back
@@ -139,6 +138,7 @@ ___For adult, one of each document type:___
 
 1. Address proof (PROOF_OF_ADDRESS)  
 
+    - Aadhaar Card of self (AADHAAR_CARD) : Front and Back
     - Driving License of self (DRIVER_LICENSE) : Front and Back
     - Passport of self (PASSPORT) : Front and Back
     - Ration Card (RATION_CARD) : Front and Back
@@ -158,7 +158,7 @@ It is important that business system remembers the status of user KYC. Status sh
 ## Callback to kycStatusUpdateUrl
 
 Obopay manually verifies these documents as part of user administration. 
-Business exposes a callback url kycStatusUpdateUrl for KYC status intimation by Obopay. KYC Status can be one of these - `APPROVED`, `SUSPENDED`.
+Business exposes a callback url kycStatusUpdateUrl for KYC status intimation by Obopay. KYC Status can be one of these - `APPROVED`, `SUSPENDED`
 
 The kycStatusUpdateUrl url must be a https url. Obopay posts KYC status response at this url. Url is called with following http headers:
 
@@ -195,17 +195,40 @@ If a user fails KYC check, he should be given option to correct KYC details in b
 
     updateUserDetails(userDetails, callback)
 
-    userDetails : Same structure as in `Obopayments.registerUser`
+    userDetails : Same structure as in 'Obopayments.activateUser'
 
 
 ## Obopayments.getKycStatus: API to check KYC status
 
-    Obopayments.getKycStatus(callback) returns 'UPLOADED' | 'APPROVED' | 'SUSPENDED'
+    Obopayments.getKycStatus(callback)
+
+    The success response is like  
+
+    {
+      code : 'SUCCESS'
+      data : kycData
+    }
+
+    kycData Object {
+      kycStatus : 'UPLOADED' | 'APPROVED' | 'SUSPENDED'
+            }
 
 
 ## Obopayments.getBalance: API to check wallet balance
 
-    Obopayments.getBalance(callback) returns `user balance`
+    Obopayments.getBalance(callback)
+
+    The success response is like
+
+    {
+      code : 'SUCCESS'
+      data : balanceData
+    }
+
+    balanceData Object {
+      primaryBalance : balance // number,
+      foodBalance    : balance // number
+    }
 
 
 ## Obopayments.viewTransactionHistory: API to View Transaction History
@@ -215,8 +238,8 @@ For viewing transaction history you should pass the wallet type whose transactio
 After passing the params on click of the 'View Transactions' button on your UI, request history as following 
 
     Obopayments.viewTransactionHistory(viewTransactionParams, callback)
-    
-    viewTransactionParams = { 
+
+    viewTransactionParams Object { 
       walletType : Type of wallet - 'ALL' | 'DEFAULT' | 'FUEL' etc.
     }
 
@@ -225,7 +248,7 @@ After passing the params on click of the 'View Transactions' button on your UI, 
     Possible Error codes :
 
     1) INVALID_WALLET_ID : Requested wallet type does not exist for the user.
-    2) WALLET_NOT_LINKED : Requested wallet is not linked with Obopay card.
+    2) WALLET_NOT_LINKED : Requested wallet is not linked with user's Obopay card.
 
 
 The SDK shows wallet history and balance in a popup.
@@ -238,27 +261,30 @@ On click of 'Select Transactions' button on your UI, request as follows
 
     Obopayments.selectTransactionHistory(selectTransactionParams, callback) 
 
-    selectTransactionParams = { 
+    selectTransactionParams Object { 
       walletType : Type of wallet - 'ALL' | 'DEFAULT' | 'FUEL' etc.
     }
 
-    The response is a JSON array of transaction Objects.
+    The success response is like
+    {
+      code : 'SUCCESS'
+      data : transaction[] // array of transaction
+    }
 
     transaction Object {
-
-        walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
-        transactionDetail : Optional transaction message
-        transactionAmount : Trasaction amount
-        merchantName      : Name of payee
-        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
-                            'PENDING' | 'FAILED' | 'TIMEOUT'
-        transactionTS     : Transaction initiation timestamp milliseconds 
-        closingBalance    : Wallet balance post transaction completion
-        txnRefNo          : Transaction reference id
-        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
-        tax              ?: Optional Tax amount
-        netAmount        ?: Optional net amount
-        amountFee        ?: Optional Fee amount
+      walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
+      transactionDetail : Optional transaction message
+      transactionAmount : Trasaction amount
+      merchantName      : Name of payee
+      transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                          'PENDING' | 'FAILED' | 'TIMEOUT'
+      transactionTS     : Transaction initiation timestamp milliseconds 
+      closingBalance    : Wallet balance post transaction completion
+      txnRefNo          : Transaction reference id
+      drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+      tax              ?: Optional Tax amount
+      netAmount        ?: Optional net amount
+      amountFee        ?: Optional Fee amount
     }
 
     Possible Error codes : 
@@ -281,23 +307,26 @@ To send money to any other Obopay user you should pass the mobile number of the 
         transMsg : Optional transaction message
     }
 
-    The response will be an object of the transaction 
+    The success response is like 
+    {
+      code : 'SUCCESS'
+      data : transaction
+    }
         
-      transaction Object {
-
-        walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
-        transactionDetail : Optional transaction message
-        transactionAmount : Trasaction amount
-        merchantName      : Name of payee
-        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
-                            'PENDING' | 'FAILED' | 'TIMEOUT'
-        transactionTS     : Transaction initiation timestamp milliseconds 
-        closingBalance    : Wallet balance post transaction completion
-        txnRefNo          : Transaction reference id
-        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
-        tax              ?: Optional Tax amount
-        netAmount        ?: Optional net amount
-        amountFee        ?: Optional Fee amount
+    transaction Object {
+      walletType        : Type of wallet 'ALL' | 'DEFAULT' | 'FUEL' etc.
+      transactionDetail : Optional transaction message
+      transactionAmount : Trasaction amount
+      merchantName      : Name of payee
+      transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                          'PENDING' | 'FAILED' | 'TIMEOUT'
+      transactionTS     : Transaction initiation timestamp milliseconds 
+      closingBalance    : Wallet balance post transaction completion
+      txnRefNo          : Transaction reference id
+      drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+      tax              ?: Optional Tax amount
+      netAmount        ?: Optional net amount
+      amountFee        ?: Optional Fee amount
       }
 
       Possible Error codes:
@@ -315,28 +344,31 @@ On click of the 'Add Money' button on your UI request the following:
 
     Obopayments.addMoney(addMoneyParams, callback) 
 
-    addMoneyParams = {
+    addMoneyParams Object {
         amount   : Amount to be added
     }
 
-    The response will be an object of the transaction
-        
-      transaction Object {
-
-        walletType        : Type of wallet - 'DEFAULT'.
-        transactionDetail : Optional transaction message
-        transactionAmount : Trasaction amount
-        merchantName      : Name of payee
-        transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
-                            'PENDING' | 'FAILED' | 'TIMEOUT'
-        transactionTS     : Transaction initiation timestamp milliseconds 
-        closingBalance    : Wallet balance post transaction completion
-        txnRefNo          : Transaction reference id
-        drCr              : Transaction type debit or Credit - 'DR' | 'CR'
-        tax              ?: Optional Tax amount
-        netAmount        ?: Optional net amount
-        amountFee        ?: Optional Fee amount
-      }
+    The success response is like 
+    {
+      code  : 'SUCCESS'
+      data ?: transaction // comes when add money is done by Card/Net Banking
+    }
+      
+    transaction Object {
+      walletType        : Type of wallet - 'ALL' | 'DEFAULT' | 'FUEL' etc.
+      transactionDetail : Optional transaction message
+      transactionAmount : Trasaction amount
+      merchantName      : Name of payee
+      transactionStatus : Status of transaction - 'COMPLETED' | 'REVERSED' | 
+                          'PENDING' | 'FAILED' | 'TIMEOUT'
+      transactionTS     : Transaction initiation timestamp milliseconds 
+      closingBalance    : Wallet balance post transaction completion
+      txnRefNo          : Transaction reference id
+      drCr              : Transaction type debit or Credit - 'DR' | 'CR'
+      tax              ?: Optional Tax amount
+      netAmount        ?: Optional net amount
+      amountFee        ?: Optional Fee amount
+    }
 
 Based on the transactionStatus of transaction object you can check whether it is completed or not
 
@@ -348,12 +380,15 @@ On click of the 'Request Money' button on your UI request the following:
 
     Obopayments.requestMoney(requestMoneyParams, callback) 
 
-    requestMoneyParams = {
-        mobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
-        amount   : Request amount
+    requestMoneyParams Object {
+      mobileNo : Country ISD prefix + 10 digit mobile number (Example +919876512345)
+      amount   : Request amount
     }
 
-    The response will be a SUCCESS or FAILURE with an error code 
+    The success response is like 
+    {
+      code : 'SUCCESS'
+    }
 
     Possible Error codes :
 
@@ -373,16 +408,20 @@ On click of the 'Collect Payment' button on your UI request the following
 
     Obopayments.collectRequest(collectRequestParams, callback) 
 
-    collectRequestParams = {
-        paymentContextId : Unique context of purchase
-        amount           : Collection amount
-        message          : Optional message
+    collectRequestParams Object {
+      paymentContextId : Unique context of purchase
+      amount           : Collection amount
+      message          : Optional message
     }
 
-    The response will be an object of the transaction
+    The success response is like
 
-    response = {
+    {
+      code : 'SUCCESS'
+      data : paymentDetails
+    }
 
+    paymentDetails Object {
       merchantId        : Your business id
       paymentContextId  : Id with which request was made
       amount            : Amount that customer paid for service
@@ -394,6 +433,21 @@ On click of the 'Collect Payment' button on your UI request the following
 
     1) TRANSACTION_TIMED_OUT : Time to complete the transaction is elapsed
 
+## Obopayments.getCardStatus : API to get Card Status
+
+On click of the 'Get Card Status' button on your UI request the following:
+
+    Obopayments.getCardStatus(callback) 
+
+    The success response is like
+    {
+      code : 'SUCCESS'
+      data : cardStatus
+    }
+
+    cardStatus object {
+      status : 'ACTIVE' | 'LOCK' | 'BLOCK' | 'PENDACTVN' | 'INACTIVE' | 'NOT_LINKED'
+    }
 
 ## Obopayments.lockCard: API to Lock Card
 
@@ -401,7 +455,10 @@ On click of the 'Lock Card' button on your UI request the following:
 
     Obopayments.lockCard(callback) 
 
-    The response will be a SUCCESS or FAILURE with error code. 
+    The success response is like 
+    {
+      code : 'SUCCESS'
+    }
 
     Possible Error codes:
 
@@ -414,7 +471,10 @@ On click of the 'Unlock Card' button on your UI request the following:
 
     Obopayments.unlockCard(callback) 
     
-    The response will be a SUCCESS or FAILURE with error code.
+    The success response is like 
+    {
+      code : 'SUCCESS'
+    }
 
     Possible Error codes:
 
@@ -426,13 +486,33 @@ On click of the 'Unlock Card' button on your UI request the following:
 On click of the 'Block Card' button on your UI request the following:
 
     Obopayments.blockCard(callback) 
-
-    The response will be a SUCCESS or FAILURE with error code.
+    
+    The success response is like 
+    {
+      code : 'SUCCESS'
+    }
 
     Possible Error codes:
 
     1) CARD_ALREADY_BLOCKED : Requesting to block a card which is already in blocked state
 
+## Common failure response type
+
+    Other than SUCCESS you can also get response like this 
+
+     {
+       code  : 'FAILURE' | 'USER_DISMISSED'
+       data ?: // Object based on code 
+     }
+
+    For 'FAILURE', structure of data is like
+      {
+        errorCode     : string // possible error codes are defined in every APIs and in common error codes
+        errorMessage ?: string //optional
+      }  
+
+    For 'USER_DISMISSED' no data is provided // when user dismissed the Obopay app
+    
 
 ## Common error codes
 
@@ -441,3 +521,7 @@ On click of the 'Block Card' button on your UI request the following:
     2) OPERATION_IN_PROGRESS  : While the SDK is showing a pop up UI for an API action and 
                                 you request for another API action.
     3) USER_NOT_ACTIVATED     : Calling any SDK API without activating / logging in the user.
+
+    4) NetworkNotPresent      : If there is a network related issue
+
+    5) USER_DISMISSED         : If user dismisses the Obopay app
