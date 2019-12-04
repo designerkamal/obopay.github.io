@@ -1,6 +1,6 @@
-# Obopay Payments: Integration via Android Sdk
+# Obopay Payments: Integration via Android SDK
 
-Obopay payments AndroidSDK provides seamless integration to business android-apps to offer Obopay payment services to it's customers.
+Obopay payments Android SDK provides seamless integration to business android-apps to offer Obopay payment services to it's customers.
 
 Obopay offers payments service in compliance with RBI PPI (Prepaid Payment Instrument) rules and regulations. End users wishing to use Obopay payments, must complete the KYC process before availing payment services.
 
@@ -156,7 +156,8 @@ For getting transaction history you should pass the wallet type. Obopay will che
       }
     }
 
-    Type 'ALL' will return the transactions of all wallets. Any other wallet type will show you the transactions from that particular wallet.
+    Type 'ALL' will return the transactions of all wallets. 
+    Any other wallet type will show you the transactions from that particular wallet.
 
     The success response is like
     {
